@@ -1,11 +1,29 @@
-#include "mainwindow.h"
 #include <QApplication>
+#include <QException>
+#include <QDebug>
+
+#include "qt-jetson-zed-opencv-nosdk.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
+    int res=-1;
 
-    return a.exec();
+    try
+    {
+        QApplication a(argc, argv);
+        QtGLWebcamDemo w;
+        w.show();
+
+        res = a.exec();
+    }
+    catch(QException &e)
+    {
+        qCritical() << QString("Exception: %1").arg( e.what() );
+    }
+    catch(...)
+    {
+        qCritical() << QString("Unhandled Exception");
+    }
+
+    return res;
 }
