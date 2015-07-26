@@ -9,20 +9,28 @@ namespace Ui {
     class QtGLWebcamDemo;
 }
 
-class QtGLWebcamDemo : public QMainWindow
+class QtOpenCVZedDemo : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit QtGLWebcamDemo(QWidget *parent = 0);
-    ~QtGLWebcamDemo();
+    explicit QtOpenCVZedDemo(QWidget *parent = 0);
+    ~QtOpenCVZedDemo();
 
 private slots:
     void on_actionStart_triggered();
 
     void on_actionVertical_Flip_triggered(bool checked);
-
     void on_action_Horizontal_Mirror_triggered(bool checked);
+
+    void enumCameras();
+    bool checkCUDA();
+    bool checkOpenCL();
+
+    void on_comboBox_cameras_currentIndexChanged(int index);
+
+    void doStereoSGBM_CPU( cv::Mat left, cv::Mat right );
+    void doStereoSBM_OCL( cv::Mat left, cv::Mat right );
 
 private:
     Ui::QtGLWebcamDemo *ui;
@@ -35,6 +43,11 @@ protected:
 private:
     bool mFlipVert;
     bool mFlipHoriz;
+
+    bool mCuda;
+    bool mOcl;
+
+    cv::Mat mDisparity;
 };
 
 #endif // QTGLWEBCAMDEMO_H

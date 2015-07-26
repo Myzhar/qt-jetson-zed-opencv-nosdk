@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     try
     {
         QApplication a(argc, argv);
-        QtGLWebcamDemo w;
+        QtOpenCVZedDemo w;
         w.show();
 
         res = a.exec();

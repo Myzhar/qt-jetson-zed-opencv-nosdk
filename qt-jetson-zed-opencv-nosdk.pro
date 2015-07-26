@@ -21,7 +21,6 @@ message("Using win32 configuration")
 
 OPENCV_PATH = C:/devel/OpenCV/opencv-2.4.6.0 # Note: update with the correct OpenCV version
 
-
 #LIBS_PATH = "$$OPENCV_PATH/build/x86/mingw/lib" #project compiled using MINGW
 LIBS_PATH = "$$OPENCV_PATH/build/x86/vc10/lib" #project compiled using Visual C++ 2010 32bit compiler
 
@@ -48,7 +47,11 @@ LIBS_PATH = /usr/lib
 LIBS     += \
     -L$$LIBS_PATH \
     -lopencv_core \
-    -lopencv_highgui
+    -lopencv_highgui \
+    -lopencv_gpu \
+    -lopencv_ocl \
+    -lopencv_imgproc \
+    -lopencv_calib3d
 }
 
 INCLUDEPATH += \
