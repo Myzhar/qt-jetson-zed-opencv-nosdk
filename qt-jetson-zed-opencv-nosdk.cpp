@@ -21,9 +21,29 @@ QtOpenCVZedDemo::QtOpenCVZedDemo(QWidget *parent) :
 
     mCuda = checkCUDA();
     mOcl = checkOpenCL();
+    
+    /*QWidget* cpuW = new QWidget;
+    QGridLayout* cpuLayout = new QGridLayout;
+    cpuLayout->addWidget( cpuW );
+    ui->tabWidget->addTab( cpuLayout, "CPU" );
 
-    ui->radioButton_cuda->setEnabled( mCuda );
-    ui->radioButton_opencl->setEnabled( mOcl );
+    QWidget* cudaW = new QWidget;
+    QGridLayout* cudaLayout = new QGridLayout;
+    cudaLayout->addWidget( cudaW );
+    ui->tabWidget->addTab( cudaLayout, "CUDA" );
+
+    mOclBmWidget = new QOclBM_params;
+    QGridLayout* oclLayout = new QGridLayout;
+    oclLayout->addWidget( mOclBmWidget );
+    ui->tabWidget->addTab( oclLayout, "OpenCL" );*/
+
+    mOclBmWidget = qobject_cast<QOclBM_params *>(ui->tabWidget->widget(2));
+
+    ui->tabWidget->setTabEnabled( 1, mCuda );
+    ui->tabWidget->setTabEnabled( 2, mOcl );
+
+    ui->statusBar->addPermanentWidget( &mFpsLabel );
+    mFpsLabel.setText( "FPS: ---");
 }
 
 QtOpenCVZedDemo::~QtOpenCVZedDemo()
@@ -93,8 +113,13 @@ void QtOpenCVZedDemo::on_actionStart_triggered()
     startTimer(0);
 }
 
+void updateFps( float time );
+
 void QtOpenCVZedDemo::timerEvent(QTimerEvent *event)
 {
+    updateFps( mElabTime.elapsed() );
+    mElabTime.restart();
+
     cv::Mat image;
     mCapture >> image;
 
@@ -119,12 +144,20 @@ void QtOpenCVZedDemo::timerEvent(QTimerEvent *event)
     ui->openCVviewer_L->showImage( left );
     ui->openCVviewer_R->showImage( right );
 
-    if( ui->radioButton_cpu->isChecked() )
+    if( ui->tabWidget->currentIndex() == 0 )
     {
         doStereoSGBM_CPU( left, right );
     }
-    else if( ui->radioButton_opencl->isChecked() )
+    else if( ui->tabWidget->currentIndex() == 1 )
+    {
+        // TODO Cuda processing
+    }
+    else if( ui->tabWidget->currentIndex() == 2 )
+    {
         doStereoSBM_OCL(left, right );
+        //doStereoCSBP_OCL( left, right );
+        //doStereoBP_OCL(left,right);
+    }
 
     ui->openCVviewer_D->showImage( mDisparity );
 }
@@ -152,6 +185,8 @@ void QtOpenCVZedDemo::on_comboBox_cameras_currentIndexChanged(int index)
 
     mCapture.set( CV_CAP_PROP_FRAME_WIDTH, 1280 );
     mCapture.set( CV_CAP_PROP_FRAME_HEIGHT, 480 );
+
+    resetFps();
 
     startTimer(0);
 }
@@ -186,9 +221,12 @@ void QtOpenCVZedDemo::doStereoSBM_OCL( cv::Mat left, cv::Mat right )
 {
     cv::ocl::StereoBM_OCL sbm;
 
-    sbm.preset = cv::ocl::StereoBM_OCL::BASIC_PRESET;
-    sbm.ndisp = 5*16;
-    sbm.winSize = 5;
+    //sbm.preset = cv::ocl::StereoBM_OCL::BASIC_PRESET;
+    //sbm.ndisp = 64;
+    //sbm.winSize = 9;
+    sbm.preset = mOclBmWidget->getFilterMode();
+    sbm.ndisp = mOclBmWidget->getDisp();
+    sbm.winSize = mOclBmWidget->getWinSize();
 
     if( left.channels() > 1  )
         cv::cvtColor( left, left, CV_BGR2GRAY );
@@ -207,4 +245,108 @@ void QtOpenCVZedDemo::doStereoSBM_OCL( cv::Mat left, cv::Mat right )
 
     ocl_disp.download( mDisparity );
     normalize(mDisparity, mDisparity, 0, 255, CV_MINMAX, CV_8U);
+}
+
+void QtOpenCVZedDemo::doStereoCSBP_OCL(cv::Mat left, cv::Mat right )
+{
+    cv::ocl::StereoConstantSpaceBP csbp;
+
+    int disp, iters, levels, planes;
+
+    csbp.estimateRecommendedParams( left.cols, left.rows, disp, iters, levels, planes );
+
+    csbp.levels = levels;
+    csbp.iters = iters;
+    csbp.ndisp = disp;
+    csbp.nr_plane = planes;
+
+    if( left.channels() > 1  )
+        cv::cvtColor( left, left, CV_BGR2GRAY );
+
+    if( right.channels() > 1  )
+        cv::cvtColor( right, right, CV_BGR2GRAY );
+
+    cv::ocl::oclMat ocl_left;
+    cv::ocl::oclMat ocl_right;
+    cv::ocl::oclMat ocl_disp;
+
+    ocl_left.upload( left );
+    ocl_right.upload( right );
+
+    csbp( ocl_left, ocl_right, ocl_disp );
+
+    ocl_disp.download( mDisparity );
+    normalize(mDisparity, mDisparity, 0, 255, CV_MINMAX, CV_8U);
+}
+
+void QtOpenCVZedDemo::doStereoBP_OCL( cv::Mat left, cv::Mat right )
+{
+    cv::ocl::StereoBeliefPropagation sbp;
+
+    int disp, iters, levels ;
+
+    sbp.estimateRecommendedParams( left.cols, left.rows, disp, iters, levels );
+
+    sbp.levels = levels;
+    sbp.iters = iters;
+    sbp.ndisp = disp;
+
+    if( left.channels() > 1  )
+        cv::cvtColor( left, left, CV_BGR2GRAY );
+
+    if( right.channels() > 1  )
+        cv::cvtColor( right, right, CV_BGR2GRAY );
+
+    cv::ocl::oclMat ocl_left;
+    cv::ocl::oclMat ocl_right;
+    cv::ocl::oclMat ocl_disp;
+
+    ocl_left.upload( left );
+    ocl_right.upload( right );
+
+    sbp( ocl_left, ocl_right, ocl_disp );
+
+    ocl_disp.download( mDisparity );
+    normalize(mDisparity, mDisparity, 0, 255, CV_MINMAX, CV_8U);
+}
+
+void QtOpenCVZedDemo::updateFps( float time )
+{
+    float freq = 1000.0f/time;
+    float meanFps;
+
+    if( mFpsCount < 10 )
+    {
+
+        mFpsCount++;
+    }
+    else
+    {
+        mFpsSum -= mFpsVec[mFpsIdx];
+
+    }
+
+    mFpsVec[mFpsIdx] = freq;
+    mFpsSum += freq;
+    mFpsIdx = (mFpsIdx+1)%10;
+    meanFps = mFpsSum / mFpsCount;
+
+    mFpsLabel.setText( tr("FPS: %1 hz").arg(meanFps, 5, 'f', 2) );
+}
+
+void QtOpenCVZedDemo::resetFps()
+{
+    mElabTime.start();
+
+    memset( mFpsVec, 0, 10*sizeof(float) );
+    mFpsCount = 0;
+    mFpsIdx = 0;
+    mFpsSum = 0.0f;
+}
+
+void QtOpenCVZedDemo::on_tabWidget_currentChanged(int index)
+{
+    Q_UNUSED(index);
+
+    resetFps();
 }

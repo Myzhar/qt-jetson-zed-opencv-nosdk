@@ -9,12 +9,15 @@ INCLUDEPATH+=./cqtopencvviewergl
 
 SOURCES += main.cpp\
            qt-jetson-zed-opencv-nosdk.cpp \
-           cqtopencvviewergl/cqtopencvviewergl.cpp
+           cqtopencvviewergl/cqtopencvviewergl.cpp \
+    qoclbm_params.cpp
 
 HEADERS  += qt-jetson-zed-opencv-nosdk.h \
-            cqtopencvviewergl/cqtopencvviewergl.h
+            cqtopencvviewergl/cqtopencvviewergl.h \
+    qoclbm_params.h
 
-FORMS    += qt-jetson-zed-opencv-nosdk.ui
+FORMS    += qt-jetson-zed-opencv-nosdk.ui \
+    qoclbm_params.ui
 
 win32 {
 message("Using win32 configuration")
