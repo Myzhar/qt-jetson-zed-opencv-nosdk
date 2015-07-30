@@ -2,12 +2,15 @@
 #include "ui_qt-jetson-zed-opencv-nosdk.h"
 
 #include <opencv2/gpu/gpu.hpp>
+
+#ifndef Q_PROCESSOR_ARM
 #include <opencv2/ocl/ocl.hpp>
+#endif
 #include <opencv2/calib3d/calib3d.hpp>
 
 QtOpenCVZedDemo::QtOpenCVZedDemo(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::QtGLWebcamDemo)
+    ui(new Ui::QtOpenCVZedDemo)
 {
     ui->setupUi(this);
 
@@ -20,7 +23,11 @@ QtOpenCVZedDemo::QtOpenCVZedDemo(QWidget *parent) :
     enumCameras();
 
     mCuda = checkCUDA();
+#ifndef Q_PROCESSOR_ARM
     mOcl = checkOpenCL();
+#else
+    mOcl = false;
+#endif
     
     /*QWidget* cpuW = new QWidget;
     QGridLayout* cpuLayout = new QGridLayout;
@@ -92,8 +99,10 @@ bool QtOpenCVZedDemo::checkCUDA()
     return cuda;
 }
 
+
 bool QtOpenCVZedDemo::checkOpenCL()
 {
+#ifndef Q_PROCESSOR_ARM
     // >>>>> OPENCL available?
     cv::ocl::PlatformsInfo oclPlat;
     int oclCount = cv::ocl::getOpenCLPlatforms( oclPlat );
@@ -102,7 +111,10 @@ bool QtOpenCVZedDemo::checkOpenCL()
     // <<<<< OPENCL available?
 
     return ocl;
+#endif
+    return false;
 }
+
 
 void QtOpenCVZedDemo::on_actionStart_triggered()
 {
@@ -116,7 +128,9 @@ void QtOpenCVZedDemo::on_actionStart_triggered()
 void updateFps( float time );
 
 void QtOpenCVZedDemo::timerEvent(QTimerEvent *event)
-{
+{    
+    Q_UNUSED(event);
+
     updateFps( mElabTime.elapsed() );
     mElabTime.restart();
 
@@ -140,9 +154,11 @@ void QtOpenCVZedDemo::timerEvent(QTimerEvent *event)
     cv::Mat left = image(lRect);
     cv::Mat right = image(rRect);
 
+    ui->graphicsView_left->setScene( &mLeft );
+
     // Show the image
-    ui->openCVviewer_L->showImage( left );
-    ui->openCVviewer_R->showImage( right );
+    mLeft.setBgImage( left );
+    mRight.setBgImage( right );
 
     if( ui->tabWidget->currentIndex() == 0 )
     {
@@ -154,12 +170,14 @@ void QtOpenCVZedDemo::timerEvent(QTimerEvent *event)
     }
     else if( ui->tabWidget->currentIndex() == 2 )
     {
+#ifndef Q_PROCESSOR_ARM
         doStereoSBM_OCL(left, right );
         //doStereoCSBP_OCL( left, right );
         //doStereoBP_OCL(left,right);
+#endif
     }
 
-    ui->openCVviewer_D->showImage( mDisparity );
+    mDisp.setBgImage( mDisparity );
 }
 
 void QtOpenCVZedDemo::on_actionVertical_Flip_triggered(bool checked)
@@ -217,6 +235,7 @@ void QtOpenCVZedDemo::doStereoSGBM_CPU( cv::Mat left, cv::Mat right )
     normalize(mDisparity, mDisparity, 0, 255, CV_MINMAX, CV_8U);
 }
 
+#ifndef Q_PROCESSOR_ARM
 void QtOpenCVZedDemo::doStereoSBM_OCL( cv::Mat left, cv::Mat right )
 {
     cv::ocl::StereoBM_OCL sbm;
@@ -309,6 +328,7 @@ void QtOpenCVZedDemo::doStereoBP_OCL( cv::Mat left, cv::Mat right )
     ocl_disp.download( mDisparity );
     normalize(mDisparity, mDisparity, 0, 255, CV_MINMAX, CV_8U);
 }
+#endif
 
 void QtOpenCVZedDemo::updateFps( float time )
 {

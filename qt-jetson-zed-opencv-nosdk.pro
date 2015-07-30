@@ -9,12 +9,12 @@ INCLUDEPATH+=./cqtopencvviewergl
 
 SOURCES += main.cpp\
            qt-jetson-zed-opencv-nosdk.cpp \
-           cqtopencvviewergl/cqtopencvviewergl.cpp \
-    qoclbm_params.cpp
+           qopencvscene.cpp \
+           qoclbm_params.cpp
 
 HEADERS  += qt-jetson-zed-opencv-nosdk.h \
-            cqtopencvviewergl/cqtopencvviewergl.h \
-    qoclbm_params.h
+            qopencvscene.h \
+            qoclbm_params.h
 
 FORMS    += qt-jetson-zed-opencv-nosdk.ui \
     qoclbm_params.ui
@@ -52,7 +52,7 @@ LIBS     += \
     -lopencv_core \
     -lopencv_highgui \
     -lopencv_gpu \
-    -lopencv_ocl \
+    #-lopencv_ocl \
     -lopencv_imgproc \
     -lopencv_calib3d
 }

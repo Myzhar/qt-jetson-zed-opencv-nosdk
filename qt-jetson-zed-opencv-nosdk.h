@@ -1,15 +1,16 @@
-#ifndef QTGLWEBCAMDEMO_H
-#define QTGLWEBCAMDEMO_H
+#ifndef QT_OPENCV_ZED_DEMO_H_
+#define QT_OPENCV_ZED_DEMO_H_
 
 #include <QMainWindow>
 #include <QLabel>
 #include <QTime>
 #include "qoclbm_params.h"
+#include "qopencvscene.h"
 
 #include <opencv2/highgui/highgui.hpp>
 
 namespace Ui {
-    class QtGLWebcamDemo;
+    class QtOpenCVZedDemo;
 }
 
 class QtOpenCVZedDemo : public QMainWindow
@@ -33,14 +34,17 @@ private slots:
     void on_comboBox_cameras_currentIndexChanged(int index);
 
     void doStereoSGBM_CPU( cv::Mat left, cv::Mat right );
+
+#ifndef Q_PROCESSOR_ARM
     void doStereoSBM_OCL( cv::Mat left, cv::Mat right );
     void doStereoCSBP_OCL( cv::Mat left, cv::Mat right );
     void doStereoBP_OCL( cv::Mat left, cv::Mat right );
+#endif
 
     void on_tabWidget_currentChanged(int index);
 
 private:
-    Ui::QtGLWebcamDemo *ui;
+    Ui::QtOpenCVZedDemo *ui;
 
     cv::VideoCapture mCapture;
 
@@ -68,6 +72,11 @@ private:
     int mFpsCount;
     int mFpsIdx;
     float mFpsSum;
+
+    QOpenCVScene mLeft;
+    QOpenCVScene mRight;
+    QOpenCVScene mDisp;
 };
 
-#endif // QTGLWEBCAMDEMO_H
+#endif // QT_OPENCV_ZED_DEMO_H_
+

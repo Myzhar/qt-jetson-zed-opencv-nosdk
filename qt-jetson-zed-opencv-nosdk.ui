@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>QtGLWebcamDemo</class>
- <widget class="QMainWindow" name="QtGLWebcamDemo">
+ <class>QtOpenCVZedDemo</class>
+ <widget class="QMainWindow" name="QtOpenCVZedDemo">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,47 +11,21 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QtGLWebcamDemo</string>
+   <string>QtOpenCVZedDemo</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="CQtOpenCVViewerGl" name="openCVviewer_L" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>320</width>
-          <height>240</height>
-         </size>
-        </property>
-       </widget>
+       <widget class="QGraphicsView" name="graphicsView_left"/>
       </item>
       <item>
-       <widget class="CQtOpenCVViewerGl" name="openCVviewer_R" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>320</width>
-          <height>240</height>
-         </size>
-        </property>
-       </widget>
+       <widget class="QGraphicsView" name="graphicsView_right"/>
       </item>
      </layout>
     </item>
-    <item row="1" column="0">
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QWidget" name="widget_controls" native="true">
@@ -71,7 +45,7 @@
             <enum>QTabWidget::Rounded</enum>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="CPU">
             <attribute name="title">
@@ -120,18 +94,12 @@
        </widget>
       </item>
       <item>
-       <widget class="CQtOpenCVViewerGl" name="openCVviewer_D" native="true">
+       <widget class="QGraphicsView" name="graphicsView_disp">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>320</width>
-          <height>240</height>
-         </size>
         </property>
        </widget>
       </item>
@@ -189,12 +157,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>CQtOpenCVViewerGl</class>
-   <extends>QWidget</extends>
-   <header>cqtopencvviewergl.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>QOclBM_params</class>
    <extends>QWidget</extends>
